@@ -90,6 +90,9 @@ size_t websocket_calc_frame_size(websocket_flags flags, size_t data_len);
 // Create string representation of frame
 size_t websocket_build_frame(char * frame, websocket_flags flags, const char mask[4], const char * data, size_t data_len);
 
+// append data of frame
+size_t websocket_append_frame(char * frame, websocket_flags flags, const char mask[4], const char * data, size_t data_len);
+
 #define websocket_parser_get_opcode(p) (p->flags & WS_OP_MASK)
 #define websocket_parser_has_mask(p) (p->flags & WS_HAS_MASK)
 #define websocket_parser_has_final(p) (p->flags & WS_FIN)

@@ -247,3 +247,13 @@ size_t websocket_build_frame(char * frame, websocket_flags flags, const char mas
 
     return body_offset + data_len;
 }
+
+size_t websocket_append_frame(char * frame, websocket_flags flags, const char mask[4], const char * data, size_t data_len) {
+    if(flags & WS_HAS_MASK) {
+        websocket_decode(frame, data, data_len, mask, 0);
+    } else {
+        memcpy(frame, data, data_len);
+    }
+
+    return data_len;
+}
