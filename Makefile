@@ -11,5 +11,9 @@ alib: websocket_parser.o
 	ar rcu libwebsocket_parser.a $<
 	ranlib libwebsocket_parser.a
 
+test: test.c
+	$(CC) -o test test.c -I. -L. -lwebsocket_parser
+	./test
+
 clean:
-	rm -f *.o *.so *.a
+	rm -f *.o *.so *.a test
