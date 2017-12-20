@@ -87,11 +87,14 @@ uint8_t websocket_decode(char * dst, const char * src, size_t len, const char ma
 // Calculate frame size using flags and data length
 size_t websocket_calc_frame_size(websocket_flags flags, size_t data_len);
 
+// Create frame header
+size_t websocket_build_frame_header(char * frame, websocket_flags flags, const char mask[4], size_t data_len);
+
 // Create string representation of frame
 size_t websocket_build_frame(char * frame, websocket_flags flags, const char mask[4], const char * data, size_t data_len);
 
 // append data of frame
-size_t websocket_append_frame(char * frame, websocket_flags flags, const char mask[4], const char * data, size_t data_len);
+size_t websocket_append_frame(char * frame, websocket_flags flags, const char mask[4], const char * data, size_t data_len, uint8_t *mask_offset);
 
 #define websocket_parser_get_opcode(p) (p->flags & WS_OP_MASK)
 #define websocket_parser_has_mask(p) (p->flags & WS_HAS_MASK)

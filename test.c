@@ -28,14 +28,16 @@ int main()
     size_t size = strlen( ctx ) + strlen( append_ctx );
     size_t length = websocket_calc_frame_size( flags,size );
 
+    uint8_t mask_offset = 0;
     char mask[4] = { 0 };
     new_masking_key( mask );
 
     char *buffer = malloc( length );
-    size_t offset = 
-        websocket_build_frame( buffer,flags,mask,ctx,strlen( ctx ) );
-    websocket_append_frame( 
-        buffer + offset,flags,mask,append_ctx,strlen( append_ctx ) );
+    size_t offset = websocket_build_frame_header( buffer,flags,mask,size );
+    offset += websocket_append_frame( 
+        buffer + offset,flags,mask,ctx,strlen( ctx ),&mask_offset );
+    websocket_append_frame( buffer + offset,
+        flags,mask,append_ctx,strlen( append_ctx ),&mask_offset );
 
     // encode finish,decode now
     websocket_parser_settings settings;
@@ -56,6 +58,13 @@ int main()
         websocket_parser_execute( &parser,&settings,buffer,length );
 
     assert( nparser == length );
+
+    assert( ws_body.done ); // verify parser finish
+    assert( 0 == strncmp( ws_body.body,ctx,strlen(ctx)) ); // verify ctx
+
+    // verify append ctx
+    const char *append_offset = ws_body.body + strlen(ctx);
+    assert( 0 == strncmp( append_offset,append_ctx,strlen(append_ctx)) );
 
     free( buffer );
     free( ws_body.body );
@@ -100,6 +109,8 @@ int on_frame_body(
 int on_frame_end( struct websocket_parser *parser )
 {
     struct websocket_body *ws_body = (struct websocket_body *)( parser->data );
+
+    assert( !ws_body->done );
 
     ws_body->done = 1;
     return 0;
