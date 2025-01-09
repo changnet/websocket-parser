@@ -42,6 +42,12 @@ typedef enum websocket_flags {
     WS_HAS_MASK    = 0x20,
 } websocket_flags;
 
+typedef enum websocket_error {
+    WPE_OK    = 0x0,
+    WPE_ERROR = 0x1,
+    WPE_PAUSE = 0x2,
+} websocket_error;
+
 #define WS_OP_MASK 0xF
 #define WS_FIN     WS_FINAL_FRAME
 
@@ -60,6 +66,7 @@ struct websocket_parser {
     size_t   offset;
 
     void * data;
+    int error;
 };
 
 struct websocket_parser_settings {

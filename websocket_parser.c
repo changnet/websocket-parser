@@ -16,8 +16,9 @@
 #define NOTIFY_CB(FOR)                                                 \
 do {                                                                   \
   if (settings->on_##FOR) {                                            \
-    if (settings->on_##FOR(parser) != 0) {                             \
-      return GET_NPARSED();                                            \
+    error = settings->on_##FOR(parser);                                \
+    if (WPE_OK != error && WPE_PAUSE != error) {                       \
+      goto RETURN;                                                     \
     }                                                                  \
   }                                                                    \
 } while (0)
@@ -25,8 +26,9 @@ do {                                                                   \
 #define EMIT_DATA_CB(FOR, ptr, len)                                    \
 do {                                                                   \
   if (settings->on_##FOR) {                                            \
-    if (settings->on_##FOR(parser, ptr, len) != 0) {                   \
-      return GET_NPARSED();                                            \
+    error = settings->on_##FOR(parser, ptr, len);                      \
+    if (WPE_OK != error && WPE_PAUSE != error) {                       \
+      goto RETURN;                                                     \
     }                                                                  \
   }                                                                    \
 } while (0)
@@ -51,6 +53,7 @@ void websocket_parser_settings_init(websocket_parser_settings *settings) {
 }
 
 size_t websocket_parser_execute(websocket_parser *parser, const websocket_parser_settings *settings, const char *data, size_t len) {
+    int error = WPE_OK;
     const char * p;
     const char * end = data + len;
     size_t frame_offset = 0;
@@ -165,8 +168,16 @@ size_t websocket_parser_execute(websocket_parser *parser, const websocket_parser
             default:
                 assertFalse("Unreachable case");
         }
+        if (WPE_PAUSE == error) {
+            // if not pause, for loop p++ for GET_NPARSED()
+            // if pause, manual p++ make sure GET_NPARSED() correct
+            p ++;
+            break;
+        }
     }
 
+RETURN:
+    parser->error = error;
     return GET_NPARSED();
 }
 
